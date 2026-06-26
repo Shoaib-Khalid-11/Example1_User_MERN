@@ -25,11 +25,11 @@ export const Login_page = () => {
       password: "",
     },
   });
-  const { mutateLogin } = useLoginApi();
+  const { mutateLogin, getLoginLoading } = useLoginApi();
   const onSubmit: SubmitHandler<LoginInFormData> = (data) => {
     mutateLogin(data, {
       onSuccess: (response) => {
-        const token = response?.user?.refreshToken;
+        const token = response?.user.refreshToken;
         if (token) {
           setToken(token);
           setSession_Util(token);
@@ -44,7 +44,10 @@ export const Login_page = () => {
       {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 mb-2">
-          {/* <FaRobot className="text-4xl text-primary animate-pulse" /> */}
+          <AppIcon_Element
+            icon="fa-solid:robot"
+            className="text-4xl text-secondary animate-pulse"
+          />
           <span className="text-2xl font-bold  bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
             FutureTech
           </span>
@@ -117,11 +120,11 @@ export const Login_page = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || getLoginLoading}
           className="btn btn-primary w-full relative overflow-hidden group"
         >
           <span className="relative z-10 flex items-center justify-center gap-2">
-            {isLoading ? (
+            {isLoading || getLoginLoading ? (
               <span className="loading loading-spinner loading-sm"></span>
             ) : (
               <>

@@ -4,11 +4,17 @@ import type {
   LoginInFormData,
   RegistrationFormData,
 } from "components/forms/schemas";
+import type { SetUserLoginResponse } from "typescript/api/types";
 import { AuthService } from "utils/services";
 
 const authService = new AuthService();
 export const useLoginApi = () => {
-  const { isPending, error, data, mutate, isSuccess } = useMutation({
+  const { isPending, error, data, mutate, isSuccess } = useMutation<
+    SetUserLoginResponse,
+    unknown,
+    LoginInFormData,
+    unknown
+  >({
     mutationKey: ["login"],
     mutationFn: (inputs: LoginInFormData) =>
       authService.login("/users/login", inputs),
