@@ -6,17 +6,19 @@ export const selectUsersState = (state: RootState) => state.users;
 
 export const selectFilteredUsers = createSelector(
   [selectUsersState],
-  ({ users, searchTerm, filterRole, filterStatus, sortBy, sortOrder }) => {
-    let filtered = [...users];
+  ({ users, searchTerm, filterRole, sortBy, sortOrder }) => {
+    if (!users) return []; // Handle null case
+    if (searchTerm === "") return users; // Handle empty search term
+    let filtered = [...users!];
 
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
 
       filtered = filtered.filter(
         (user) =>
-          user.name.toLowerCase().includes(searchLower) ||
+          user.fullName.toLowerCase().includes(searchLower) ||
           user.email.toLowerCase().includes(searchLower) ||
-          user.location.toLowerCase().includes(searchLower) ||
+          user.username.toLowerCase().includes(searchLower) ||
           user.role.toLowerCase().includes(searchLower),
       );
     }
@@ -25,9 +27,9 @@ export const selectFilteredUsers = createSelector(
       filtered = filtered.filter((user) => user.role === filterRole);
     }
 
-    if (filterStatus !== "all") {
-      filtered = filtered.filter((user) => user.status === filterStatus);
-    }
+    // if (filterStatus !== "all") {
+    //   filtered = filtered.filter((user) => user.status === filterStatus);
+    // }
 
     filtered.sort((a, b) => {
       const aVal = (a as { [key: string]: any })[sortBy];

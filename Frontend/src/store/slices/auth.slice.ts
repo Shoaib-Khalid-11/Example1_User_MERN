@@ -4,6 +4,7 @@ import type { AuthStoreType } from "typescript/types";
 
 const initialState: AuthStoreType = {
   isAuthenticated: false,
+  token: null,
 };
 export const authSlice = createSlice({
   name: "auth",
@@ -15,10 +16,13 @@ export const authSlice = createSlice({
     ) => {
       state.isAuthenticated = action.payload;
     },
+    setToken: (state: AuthStoreType, action: PayloadAction<string | null>) => {
+      state.token = action.payload;
+    },
   },
 });
 
-export const { setIsAuntaticated } = authSlice.actions;
+export const { setIsAuntaticated, setToken } = authSlice.actions;
 export const authSelector = (appSiteState: RootState): AuthStoreType =>
   appSiteState.auth;
 
@@ -28,5 +32,6 @@ export const useAuthStore = () => {
     authState: useAppSelector(authSelector),
     setIsAuntaticated: (isAuthed: boolean) =>
       dispatch(setIsAuntaticated(isAuthed)),
+    setToken: (token: string | null) => dispatch(setToken(token)),
   };
 };

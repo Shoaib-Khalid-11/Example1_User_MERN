@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForgotPasswordApi } from "api/auth.api";
+import { useForgotPasswordApi } from "utils/api/auth.api";
 import { AppInput_form } from "components/forms";
 import {
   forgotPasswordSchema,

@@ -1,14 +1,21 @@
 export interface IUserApi {
+  _id: string;
   username: string;
-  email: string;
   fullName: string;
-  password?: string;
+  email: string;
   role: "user" | "admin";
   isVerified: boolean;
-  refreshToken: string | null; // ← Optional (? mark)
+
+  refreshToken: string | null;
+
   resetPasswordToken: string | null;
-  resetPasswordExpire: Date | null;
-  // resetPasswordTokenExpire?: Date;
+  resetPasswordExpire: string | null;
+
   verificationToken: string | null;
-  verificationTokenExpire: Date | null;
+  verificationTokenExpire: string | null;
+
+  createdAt: string;
+  updatedAt: string;
+
+  __v: number;
 }

@@ -2,6 +2,7 @@ import { AppIcon_Element } from "components/third-party";
 import { useEffect, useState } from "react";
 import { useAppStore, useAuthStore } from "store/slices";
 import { PaletteModeEnum } from "typescript/enums";
+import { setSession_Util } from "utils";
 
 interface NavItem {
   label: string;
@@ -55,6 +56,7 @@ export const NavBar_layout = () => {
 
   const handleLogout = () => {
     setIsAuntaticated(false);
+    setSession_Util(null);
   };
   return (
     <nav

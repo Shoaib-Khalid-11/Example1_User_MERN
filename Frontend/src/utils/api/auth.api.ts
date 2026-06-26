@@ -4,7 +4,7 @@ import type {
   LoginInFormData,
   RegistrationFormData,
 } from "components/forms/schemas";
-import { AuthService } from "services";
+import { AuthService } from "utils/services";
 
 const authService = new AuthService();
 export const useLoginApi = () => {

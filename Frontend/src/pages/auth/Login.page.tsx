@@ -1,17 +1,18 @@
 import { AppIcon_Element } from "components/third-party";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginInSchema, type LoginInFormData } from "components/forms/schemas";
 import { AppInput_form } from "components/forms";
-import { useLoginApi } from "api/auth.api";
+import { useLoginApi } from "utils/api/auth.api";
 import { useAuthStore } from "store/slices";
+import { setSession_Util } from "utils";
 
 export const Login_page = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const { setIsAuntaticated } = useAuthStore();
+  const { setIsAuntaticated, setToken } = useAuthStore();
   const navigate = useNavigate();
   const {
     control,
@@ -24,16 +25,20 @@ export const Login_page = () => {
       password: "",
     },
   });
-  const { mutateLogin, getisSuccessLogin } = useLoginApi();
+  const { mutateLogin } = useLoginApi();
   const onSubmit: SubmitHandler<LoginInFormData> = (data) => {
-    mutateLogin(data);
+    mutateLogin(data, {
+      onSuccess: (response) => {
+        const token = response?.user?.refreshToken;
+        if (token) {
+          setToken(token);
+          setSession_Util(token);
+          setIsAuntaticated(true);
+          navigate("/");
+        }
+      },
+    });
   };
-  useEffect(() => {
-    if (getisSuccessLogin) {
-      setIsAuntaticated(true);
-      navigate("/");
-    }
-  }, [getisSuccessLogin, setIsAuntaticated, navigate]);
   return (
     <>
       {/* Header */}

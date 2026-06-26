@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRegisterApi } from "api/auth.api";
+import { useRegisterApi } from "utils/api/auth.api";
 import { AppInput_form } from "components/forms";
 import {
   registrationSchema,
