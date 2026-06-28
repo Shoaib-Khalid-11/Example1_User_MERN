@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from "react";
+import type { SelectHTMLAttributes } from "react";
 import {
   Controller,
   type Control,
@@ -6,33 +6,39 @@ import {
   type Path,
 } from "react-hook-form";
 
-type InputProps<T extends FieldValues> = {
+type SelectOption = {
+  label: string;
+  value: string;
+};
+
+type SelectProps<T extends FieldValues> = {
   name: Path<T>;
   control: Control<T>;
   label: string;
-  type?: string;
+  options: SelectOption[];
   placeholder?: string;
   prefixIcon?: React.ReactNode;
   suffixIcon?: React.ReactNode;
   className?: string;
-  inputClassName?: string;
+  selectClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
-} & InputHTMLAttributes<HTMLInputElement>;
-export const AppInput_form = <T extends FieldValues>({
+} & SelectHTMLAttributes<HTMLSelectElement>;
+
+export const AppSelect_form = <T extends FieldValues>({
   name,
   control,
   label,
-  type = "text",
-  placeholder,
+  options,
+  placeholder = "Select an option",
   prefixIcon,
   suffixIcon,
   className = "",
-  inputClassName = "",
+  selectClassName = "",
   labelClassName = "",
   errorClassName = "",
   ...inputProps
-}: InputProps<T>) => {
+}: SelectProps<T>) => {
   return (
     <Controller
       name={name}
@@ -49,25 +55,31 @@ export const AppInput_form = <T extends FieldValues>({
               <span className="absolute left-2 z-10">{prefixIcon}</span>
             )}
 
-            <input
+            <select
               {...field}
               {...inputProps}
-              type={type}
-              placeholder={placeholder}
-              className={`input input-bordered w-full ${
-                fieldState.error ? "input-error" : ""
-              } ${prefixIcon ? "pl-10" : ""} ${
+              className={`select select-bordered w-full ${
+                fieldState.error ? "select-error" : ""
+              }${prefixIcon ? "pl-10" : ""} ${
                 suffixIcon ? "pr-10" : ""
-              } ${inputClassName}`}
-            />
+              }  ${selectClassName}`}
+            >
+              <option value="" disabled>
+                {placeholder}
+              </option>
 
+              {options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
             {suffixIcon && (
               <span className="absolute right-0.5 z-10">{suffixIcon}</span>
             )}
           </div>
-
           {fieldState.error && (
-            <label className={`label pt-1  ${errorClassName}`}>
+            <label className={`label pt-1 ${errorClassName}`}>
               <span className="label-text-alt text-error whitespace-normal">
                 {fieldState.error.message}
               </span>
@@ -78,4 +90,5 @@ export const AppInput_form = <T extends FieldValues>({
     />
   );
 };
-export default AppInput_form;
+
+export default AppSelect_form;

@@ -7,3 +7,6 @@ export type GetUsersResponse = AxiosBaseResponse<{
 export type SetUserLoginResponse = AxiosBaseResponse<{
   user: IUserApi;
 }>;
+export type GetUserByIDResponse = AxiosBaseResponse<{
+  user: IUserApi;
+}>;

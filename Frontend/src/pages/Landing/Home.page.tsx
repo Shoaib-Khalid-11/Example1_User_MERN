@@ -1,14 +1,17 @@
-import { useAllUsersApi } from "utils/api/user.api";
+import { useAllUsersApi, useDeleteUserByIDApi } from "utils/api/user.api";
 
 import { useUserSliceStore_Hook } from "hooks";
 import type { IUserApi } from "typescript/api/interface";
 import { useEffect, useMemo } from "react";
 import { AppIcon_Element } from "components/third-party";
+import { useNavigate } from "react-router";
 
 export const Home_Page = () => {
+  const navigate = useNavigate();
   const { getAllUsersData, getAllUsersError, getAllUsersLoading } =
     useAllUsersApi();
-  console.log("Users:", getAllUsersData?.users, "Error:", getAllUsersError);
+  const { mutateDeleteUserByID, deleteUserByIDLoading } =
+    useDeleteUserByIDApi();
   const {
     getUserStateSelector: {
       users,
@@ -138,6 +141,9 @@ export const Home_Page = () => {
       </div>
     );
   }
+  const handleUserByID = (id: string) => {
+    navigate(`/user/${id}`);
+  };
   return (
     <div className="min-h-screen bg-base-200 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -182,20 +188,22 @@ export const Home_Page = () => {
         </div>
 
         {/* Error Message */}
-        {/* {isError && ( */}
-        <div className="alert alert-error mb-6 animate-shake">
-          <AppIcon_Element icon="boxicons:alert-circle" className="text-lg" />
-          <span>
-            {/* {error instanceof Error ? error.message : "An error occurred"} */}
-          </span>
-          <button
-            // onClick={() => refetch()}
-            className="btn btn-ghost btn-xs"
-          >
-            Retry
-          </button>
-        </div>
-        {/* )} */}
+        {getAllUsersError && (
+          <div className="alert alert-error mb-6 animate-shake">
+            <AppIcon_Element icon="boxicons:alert-circle" className="text-lg" />
+            <span>
+              {getAllUsersError instanceof Error
+                ? getAllUsersError.message
+                : "An error occurred"}
+            </span>
+            <button
+              // onClick={() => refetch()}
+              className="btn btn-ghost btn-xs"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* Filters Section */}
         <div className="bg-base-100/80 backdrop-blur-xl rounded-2xl p-4 mb-6 border border-base-300/50 shadow-xl">
@@ -346,31 +354,34 @@ export const Home_Page = () => {
                       >
                         <li>
                           <button
-                            // onClick={() => dispatch(setSelectedUser(user))}
+                            onClick={() => handleUserByID(user._id)}
                             className="flex items-center gap-2"
                           >
                             <AppIcon_Element icon="solar:eye-linear" /> View
                           </button>
                         </li>
                         <li>
-                          <button className="flex items-center gap-2">
+                          <button
+                            className="flex items-center gap-2"
+                            onClick={() => navigate(`/user/update/${user._id}`)}
+                          >
                             <AppIcon_Element icon="iconamoon:edit-light" /> Edit
                           </button>
                         </li>
                         <li>
                           <button
-                            // onClick={() => handleDeleteUser(user.email)}
-                            // disabled={deleteUserMutation.isPending}
+                            onClick={() => mutateDeleteUserByID(user?._id)}
+                            disabled={deleteUserByIDLoading}
                             className="flex items-center gap-2 text-error"
                           >
-                            {/* {deleteUserMutation.isPending ? ( */}
-                            <AppIcon_Element
-                              icon="lucide:loader"
-                              className="animate-spin"
-                            />
-                            {/* // ) : ( */}
-                            <AppIcon_Element icon={"tabler:trash"} />
-                            {/* // )} */}
+                            {deleteUserByIDLoading ? (
+                              <AppIcon_Element
+                                icon="lucide:loader"
+                                className="animate-spin"
+                              />
+                            ) : (
+                              <AppIcon_Element icon={"tabler:trash"} />
+                            )}
                             Delete
                           </button>
                         </li>
@@ -433,7 +444,10 @@ export const Home_Page = () => {
                         )}
                       </div>
 
-                      <button className="btn btn-primary btn-xs relative overflow-hidden group">
+                      <button
+                        className="btn btn-primary btn-xs relative overflow-hidden group"
+                        onClick={() => handleUserByID(user._id)}
+                      >
                         <span className="relative z-10">View Profile</span>
                         <div className="absolute inset-0 bg-linear-to-r from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </button>
