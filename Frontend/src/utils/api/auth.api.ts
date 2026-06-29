@@ -28,7 +28,7 @@ export const useLoginApi = () => {
   };
 };
 export const useRegisterApi = () => {
-  const { isPending, error, data, mutate } = useMutation({
+  const { isPending, error, data, mutate, isSuccess } = useMutation({
     mutationKey: ["register"],
     mutationFn: (inputs: RegistrationFormData) =>
       authService.register("/users/register", inputs),
@@ -37,6 +37,7 @@ export const useRegisterApi = () => {
     getRegisterLoading: isPending,
     getRegisterError: error,
     getRegisterData: data,
+    getisSuccessRegister: isSuccess,
     mutateRegister: mutate,
   };
 };
