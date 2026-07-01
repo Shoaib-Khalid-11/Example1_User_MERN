@@ -1,18 +1,15 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Response, NextFunction, Request } from "express";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import { catchAsyncError } from "../utils/catchAsyncError.ts";
 import { ErrorHandler } from "../utils/errorsHandler.ts";
-import { User, type IUserDocument } from "../models/userSchema.model.ts";
+import { User } from "../models/index.ts";
 
 interface AuthTokenPayload extends JwtPayload {
   id: string;
 }
-interface ExtendedRequest extends Request {
-  user?: IUserDocument;
-}
 
-export const isAuthenticated = catchAsyncError(
-  async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+export const isProtected = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader?.startsWith("Bearer ")) {
@@ -35,7 +32,9 @@ export const isAuthenticated = catchAsyncError(
         return next(new ErrorHandler("Invalid token payload", 401));
       }
 
-      const user = await User.findById(decoded.id).select("-password");
+      const user = await User.findById(decoded.id)
+        .select("-password")
+        .populate({ path: "role", populate: { path: "permissions" } });
 
       if (!user) {
         return next(new ErrorHandler("User not found", 404));

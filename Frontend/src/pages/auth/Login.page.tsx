@@ -25,7 +25,15 @@ export const Login_page = () => {
       password: "",
     },
   });
-  const { mutateLogin, getLoginLoading } = useLoginApi();
+  const {
+    mutateLogin,
+    getLoginLoading,
+    getLoginError,
+    getisErrorLogin,
+    getisSuccessLogin,
+    getLoginData,
+  } = useLoginApi();
+  const message = getLoginData?.message;
   const onSubmit: SubmitHandler<LoginInFormData> = (data) => {
     mutateLogin(data, {
       onSuccess: (response) => {
@@ -116,6 +124,16 @@ export const Login_page = () => {
             Forgot password?
           </Link>
         </div>
+        {getisErrorLogin && (
+          <div className="alert alert-error mb-6 animate-shake">
+            <span>{getLoginError?.message}</span>
+          </div>
+        )}
+        {getisSuccessLogin && (
+          <div className="alert alert-success mb-6 animate-shake">
+            <span>{message}</span>
+          </div>
+        )}
 
         {/* Submit Button */}
         <button

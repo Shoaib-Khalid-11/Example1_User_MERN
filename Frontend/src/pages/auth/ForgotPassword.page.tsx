@@ -20,7 +20,14 @@ export const ForgotPassword_page = () => {
       email: "",
     },
   });
-  const { mutateForgotPassword } = useForgotPasswordApi();
+  const {
+    mutateForgotPassword,
+    getisErrorForgotPassword,
+    getForgotPasswordError,
+    getisSuccessForgotPassword,
+    getForgotPasswordData,
+  } = useForgotPasswordApi();
+  const message = getForgotPasswordData?.message; // Add your success message here
   const onSubmit: SubmitHandler<ForgotPasswordFormData> = (data) => {
     mutateForgotPassword(data);
   };
@@ -66,26 +73,16 @@ export const ForgotPassword_page = () => {
                 />
               }
             />
-            {/* <div className="form-control">
-            <label className="label">
-              <span className="label-text font-medium">Email Address</span>
-            </label>
-            <div className="relative">
-              <AppIcon_Element
-                icon="tabler:mail"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 text-lg"
-              />
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={"email"}
-                // onChange={(e) => setEmail(e.target.value)}
-                className="input input-bordered w-full pl-10 pr-4 bg-base-200/50 focus:ring-2 focus:ring-accent/50 transition-all"
-                required
-              />
-            </div>
-          </div> */}
-
+            {getisErrorForgotPassword && (
+              <div className="alert alert-error mb-6 animate-shake">
+                <span>{getForgotPasswordError?.message}</span>
+              </div>
+            )}
+            {getisSuccessForgotPassword && (
+              <div className="alert alert-success mb-6 animate-shake">
+                <span>{message}</span>
+              </div>
+            )}
             {/* Submit Button */}
             <button
               type="submit"

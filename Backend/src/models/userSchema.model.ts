@@ -1,34 +1,12 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Model, Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
 import { getExpiryTime } from "../utils/cookie.ts";
-import type { HydratedDocument } from "mongoose";
+import type { IUser, IUserMethods } from "../typescript/interfaces/index.ts";
+import type { IUserDocument } from "../typescript/types/index.ts";
 
-interface IUser {
-  username: string;
-  email: string;
-  fullName: string;
-  password: string;
-  role: "user" | "admin";
-  isVerified: boolean;
-  refreshToken: string | null; // ← Optional (? mark)
-  resetPasswordToken: string | null;
-  resetPasswordExpire: Date | null;
-  // resetPasswordTokenExpire?: Date;
-  verificationToken: string | null;
-  verificationTokenExpire: Date | null;
-}
-
-interface IUserMethods {
-  comparePassword(candidatePassword: string): Promise<boolean>;
-  generateVarificationToken(): string;
-  generateRefreshToken(): string;
-  getResetPasswordToken(): string;
-}
 type UserModel = Model<IUser, {}, IUserMethods>;
-
-export type IUserDocument = HydratedDocument<IUser, IUserMethods>;
 
 const JWT_EXPIRES_Varification_Token: SignOptions["expiresIn"] =
   (process.env.JWT_EXPIRES_VARIFICATION_TOKEN as SignOptions["expiresIn"]) ||
@@ -66,9 +44,9 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       select: false,
     },
     role: {
-      type: String,
-      enum: ["user", "admin"],
-      default: "user",
+      type: Schema.Types.ObjectId,
+      ref: "Role",
+      required: true,
     },
     isVerified: {
       type: Boolean,

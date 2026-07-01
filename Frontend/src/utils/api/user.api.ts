@@ -25,23 +25,25 @@ export const useAllUsersApi = () => {
 };
 //? ----------------------------------------User By ID----------------------------------------------------
 export const useUserByIDApi = (id: string) => {
-  const { isPending, error, data, isSuccess } = useQuery<GetUserByIDResponse>({
-    queryKey: ["user", id],
-    queryFn: () => userService.getUserByID(`/users/profile/${id}`),
-    enabled: !!id,
-  });
+  const { isPending, error, data, isSuccess, isError } =
+    useQuery<GetUserByIDResponse>({
+      queryKey: ["user", id],
+      queryFn: () => userService.getUserByID(`/users/profile/${id}`),
+      enabled: !!id,
+    });
   return {
     getUserByIDLoading: isPending,
     getUserByIDError: error,
     getUserByIDData: data,
     getisSuccessUserByID: isSuccess,
+    getisErrorUserByID: isError,
   };
 };
 //? ----------------------------------------User Update By ID----------------------------------------------------
 export const useUserByIDUpdateApi = (id: string) => {
   const queryClient = useQueryClient();
 
-  const { isPending, error, data, mutate, isSuccess } = useMutation<
+  const { isPending, error, data, mutate, isSuccess, isError } = useMutation<
     GetUserByIDResponse,
     Error,
     UserFormUpdateData,
@@ -62,6 +64,7 @@ export const useUserByIDUpdateApi = (id: string) => {
     getUserByIDUpdateData: data,
     mutateUserByIDUpdate: mutate,
     getisSuccessUserByIDUpdate: isSuccess,
+    getisErrorUserByIDUpdate: isError,
   };
 };
 //? ----------------------------------------User Update By ID Password------------------------------------------------//

@@ -10,20 +10,20 @@ import {
   updatePassword,
   updateUserProfile,
 } from "../controllers/user.controller.ts";
-import { isAuthenticated } from "../middlewares/auth.ts";
+import { isProtected } from "../middlewares/index.ts";
 const router = express.Router();
 //? Get Requests
-router.get("/logout", isAuthenticated, logout);
-router.get("/profile/:id", isAuthenticated, getUserProfile);
-router.get("/all", isAuthenticated, getAllUsers);
+router.get("/logout", isProtected, logout);
+router.get("/profile/:id", isProtected, getUserProfile);
+router.get("/all", isProtected, getAllUsers);
 //? Post Requests
 router.post("/register", register);
 router.post("/login", login);
 router.post("/forgot/password", forgotPassword);
 //? Put Requests
-router.put("/update/profile/:id", isAuthenticated, updateUserProfile);
-router.put("/update/password/:id", isAuthenticated, updatePassword);
+router.put("/update/profile/:id", isProtected, updateUserProfile);
+router.put("/update/password/:id", isProtected, updatePassword);
 //? Delete Requests
-router.delete("/delete/profile/:id", isAuthenticated, deleteUserProfile);
+router.delete("/delete/profile/:id", isProtected, deleteUserProfile);
 
 export default router;

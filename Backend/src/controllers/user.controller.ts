@@ -136,10 +136,10 @@ export const getAllUsers = catchAsyncError(async (req, res, next) => {
 });
 export const updateUserProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
-  const { username, email, fullName } = req.body;
+  const { username, email, fullName, role, isVerified } = req.body;
   const user = await User.updateOne(
     { _id: id },
-    { $set: { username, email, fullName } },
+    { $set: { username, email, fullName, role, isVerified } },
   );
   if (!user) {
     return next(new ErrorHandler("No user found", 401));

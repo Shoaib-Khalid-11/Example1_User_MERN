@@ -54,14 +54,16 @@ export const AppCheckbox_form = <T extends FieldValues>({
               checked={!!field.value}
               onChange={(e) => field.onChange(e.target.checked)}
               onBlur={field.onBlur}
-              className={`checkbox ${
-                fieldState.error ? "checkbox-error" : ""
-              }${prefixIcon ? "pl-10" : ""} ${
-                suffixIcon ? "pr-10" : ""
-              } ${checkboxClassName}`}
+              className={`checkbox ${fieldState.error ? "checkbox-error" : ""}
+              ${checkboxClassName}`}
+              // ${prefixIcon ? "pl-10" : ""} ${
+              //   suffixIcon ? "pr-10" : ""
+              // }
             />
 
-            <span className="label-text flex-1">{label}</span>
+            {!labelTextFirst && (
+              <span className="label-text flex-1">{label}</span>
+            )}
 
             {suffixIcon && (
               <span className="flex items-center">{suffixIcon}</span>

@@ -41,8 +41,16 @@ export const Registration_page = () => {
   });
 
   const passwordStrength = getPasswordStrength(password ?? "");
-  const { mutateRegister, getRegisterLoading, getisSuccessRegister } =
-    useRegisterApi();
+  const {
+    mutateRegister,
+    getRegisterLoading,
+    getisSuccessRegister,
+    getRegisterError,
+    getisErrorRegister,
+    getRegisterData,
+  } = useRegisterApi();
+  const message = getRegisterData?.message; // Access the message from the register API response
+  console.log("Register Data:", getRegisterData); // Log the register data to the console
   const onSubmit: SubmitHandler<RegistrationFormData> = (data) => {
     mutateRegister(data); // Call the register API
   };
@@ -245,7 +253,16 @@ export const Registration_page = () => {
                 </span>
               </label>
             </div>
-
+            {getisErrorRegister && (
+              <div className="alert alert-error mb-6 animate-shake">
+                <span>{getRegisterError?.message}</span>
+              </div>
+            )}
+            {getisSuccessRegister && (
+              <div className="alert alert-success mb-6 animate-shake">
+                <span>{message}</span>
+              </div>
+            )}
             {/* Submit Button */}
             <button
               type="submit"
