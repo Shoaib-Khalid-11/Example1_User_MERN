@@ -29,7 +29,7 @@ export const register = catchAsyncError(async (req, res, next) => {
 
   await user.save();
 
-  const varificationTokenUrl = `${process.env.APP_URL}/api/v1/verifications/verify-email/${varificationToken}`;
+  const varificationTokenUrl = `${process.env.APP_URL}/varify-email/${varificationToken}`;
   try {
     await sendEmail({
       emailFrom: "shoaibkhalid330@gmail.com", // replace with your email
@@ -66,6 +66,7 @@ export const login = catchAsyncError(async (req, res, next) => {
   }
   if (matched) {
     user.refreshToken = user.generateRefreshToken();
+    await user.save({ validateBeforeSave: false });
     // sendEmail({
     //   emailFrom: "shoaibkhalid330@gmail.com", // replace with your email
     //   emailTo: email,
@@ -135,10 +136,10 @@ export const getAllUsers = catchAsyncError(async (req, res, next) => {
 });
 export const updateUserProfile = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
-  const { username, email, fullName } = req.body;
+  const { username, email, fullName, role, isVerified } = req.body;
   const user = await User.updateOne(
     { _id: id },
-    { $set: { username, email, fullName } },
+    { $set: { username, email, fullName, role, isVerified } },
   );
   if (!user) {
     return next(new ErrorHandler("No user found", 401));

@@ -1,14 +1,30 @@
+import type { UserEnum } from "../enums";
+
 export interface IUserApi {
+  _id: string;
   username: string;
-  email: string;
   fullName: string;
-  password?: string;
-  role: "user" | "admin";
+  email: string;
+  role: UserEnum;
   isVerified: boolean;
-  refreshToken: string | null; // ← Optional (? mark)
+
+  refreshToken: string | null;
+
   resetPasswordToken: string | null;
-  resetPasswordExpire: Date | null;
-  // resetPasswordTokenExpire?: Date;
+  resetPasswordExpire: string | null;
+
   verificationToken: string | null;
-  verificationTokenExpire: Date | null;
+  verificationTokenExpire: string | null;
+
+  createdAt: string;
+  updatedAt: string;
+
+  __v: number;
+}
+export interface IUserUpdateApi {
+  username: string;
+  fullName: string;
+  email: string;
+  role: UserEnum;
+  isVerified: boolean;
 }

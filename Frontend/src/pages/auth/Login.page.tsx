@@ -1,17 +1,18 @@
 import { AppIcon_Element } from "components/third-party";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginInSchema, type LoginInFormData } from "components/forms/schemas";
 import { AppInput_form } from "components/forms";
-import { useLoginApi } from "api/auth.api";
+import { useLoginApi } from "utils/api/auth.api";
 import { useAuthStore } from "store/slices";
+import { setSession_Util } from "utils";
 
 export const Login_page = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const { setIsAuntaticated } = useAuthStore();
+  const { setIsAuntaticated, setToken } = useAuthStore();
   const navigate = useNavigate();
   const {
     control,
@@ -24,22 +25,37 @@ export const Login_page = () => {
       password: "",
     },
   });
-  const { mutateLogin, getisSuccessLogin } = useLoginApi();
+  const {
+    mutateLogin,
+    getLoginLoading,
+    getLoginError,
+    getisErrorLogin,
+    getisSuccessLogin,
+    getLoginData,
+  } = useLoginApi();
+  const message = getLoginData?.message;
   const onSubmit: SubmitHandler<LoginInFormData> = (data) => {
-    mutateLogin(data);
+    mutateLogin(data, {
+      onSuccess: (response) => {
+        const token = response?.user.refreshToken;
+        if (token) {
+          setToken(token);
+          setSession_Util(token);
+          setIsAuntaticated(true);
+          navigate("/");
+        }
+      },
+    });
   };
-  useEffect(() => {
-    if (getisSuccessLogin) {
-      setIsAuntaticated(true);
-      navigate("/");
-    }
-  }, [getisSuccessLogin, setIsAuntaticated, navigate]);
   return (
     <>
       {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 mb-2">
-          {/* <FaRobot className="text-4xl text-primary animate-pulse" /> */}
+          <AppIcon_Element
+            icon="fa-solid:robot"
+            className="text-4xl text-secondary animate-pulse"
+          />
           <span className="text-2xl font-bold  bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
             FutureTech
           </span>
@@ -108,15 +124,25 @@ export const Login_page = () => {
             Forgot password?
           </Link>
         </div>
+        {getisErrorLogin && (
+          <div className="alert alert-error mb-6 animate-shake">
+            <span>{getLoginError?.message}</span>
+          </div>
+        )}
+        {getisSuccessLogin && (
+          <div className="alert alert-success mb-6 animate-shake">
+            <span>{message}</span>
+          </div>
+        )}
 
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || getLoginLoading}
           className="btn btn-primary w-full relative overflow-hidden group"
         >
           <span className="relative z-10 flex items-center justify-center gap-2">
-            {isLoading ? (
+            {isLoading || getLoginLoading ? (
               <span className="loading loading-spinner loading-sm"></span>
             ) : (
               <>

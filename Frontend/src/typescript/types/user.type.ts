@@ -1,5 +1,7 @@
 // types/user.types.ts
 
+import type { IUserApi } from "typescript/api/interface";
+
 export type SortOrder = "asc" | "desc";
 
 export const USER_ROLES = [
@@ -43,13 +45,16 @@ export interface User {
   projects: number;
 }
 
+export type SortBy = "fullName" | "username" | "role" | "email";
+export type FilterRole = "all" | "user" | "admin";
+export type FilterStatus = "all" | "Active" | "Pending";
 export interface UserState {
-  users: User[];
+  users: IUserApi[] | null;
   searchTerm: string;
   currentPage: number;
   itemsPerPage: number;
-  filterRole: string;
-  filterStatus: string;
-  sortBy: string;
+  filterRole: FilterRole;
+  filterStatus: FilterStatus;
+  sortBy: SortBy;
   sortOrder: SortOrder;
 }

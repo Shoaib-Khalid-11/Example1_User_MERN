@@ -1,3 +1,4 @@
+import type { InputHTMLAttributes } from "react";
 import {
   Controller,
   type Control,
@@ -17,7 +18,7 @@ type InputProps<T extends FieldValues> = {
   inputClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
-};
+} & InputHTMLAttributes<HTMLInputElement>;
 export const AppInput_form = <T extends FieldValues>({
   name,
   control,
@@ -30,6 +31,7 @@ export const AppInput_form = <T extends FieldValues>({
   inputClassName = "",
   labelClassName = "",
   errorClassName = "",
+  ...inputProps
 }: InputProps<T>) => {
   return (
     <Controller
@@ -49,6 +51,7 @@ export const AppInput_form = <T extends FieldValues>({
 
             <input
               {...field}
+              {...inputProps}
               type={type}
               placeholder={placeholder}
               className={`input input-bordered w-full ${

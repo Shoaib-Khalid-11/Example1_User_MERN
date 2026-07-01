@@ -1,27 +1,48 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useAllUsersApi, useDeleteUserByIDApi } from "utils/api/user.api";
+
+import { useUserSliceStore_Hook } from "hooks";
+import type { IUserApi } from "typescript/api/interface";
+import { useEffect, useMemo } from "react";
 import { AppIcon_Element } from "components/third-party";
-import { mockUsers } from "data/mokeData";
-import { HomeFilter_layout, HomeManage_layout } from "layouts/home";
-import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 
 export const Home_Page = () => {
-  const [users, setUsers] = useState(mockUsers);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(9);
-  const [filterRole, setFilterRole] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [sortBy, setSortBy] = useState("name");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  // const [selectedUser, setSelectedUser] = useState<any>(null);
+  const navigate = useNavigate();
+  const { getAllUsersData, getAllUsersError, getAllUsersLoading } =
+    useAllUsersApi();
+  const { mutateDeleteUserByID, deleteUserByIDLoading } =
+    useDeleteUserByIDApi();
+  const {
+    getUserStateSelector: {
+      users,
+      searchTerm,
+      filterRole,
+      filterStatus,
+      sortBy,
+      sortOrder,
+      currentPage,
+      itemsPerPage,
+    },
+    setUsersDispatched,
 
-  // Reset to first page when filters change
+    setSearchTermDispatched,
+    setCurrentPageDispatched,
+    setItemsPerPageDispatched,
+    setFilterRoleDispatched,
+    // setFilterStatusDispatched,
+    setSortByDispatched,
+    setSortOrderDispatched,
+    // setToggleSortOrderDispatched,
+    resetFiltersDispatched,
+  } = useUserSliceStore_Hook();
+  // setUsersDispatched(getAllUsersData?.users || []);
   useEffect(() => {
-    // setCurrentPage(1);
-  }, [searchTerm, filterRole, filterStatus, sortBy, sortOrder]);
-
-  // Filter and search users
+    if (getAllUsersData?.users) {
+      setUsersDispatched(getAllUsersData.users);
+    }
+  }, [getAllUsersData?.users, setUsersDispatched]);
   const filteredUsers = useMemo(() => {
+    if (!users) return [];
     let filtered = [...users];
 
     // Search filter
@@ -29,10 +50,9 @@ export const Home_Page = () => {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (user) =>
-          user.name.toLowerCase().includes(searchLower) ||
-          user.email.toLowerCase().includes(searchLower) ||
-          user.location.toLowerCase().includes(searchLower) ||
-          user.role.toLowerCase().includes(searchLower),
+          user.fullName.toLowerCase().includes(searchLower) ||
+          user.username.toLowerCase().includes(searchLower) ||
+          user.email.toLowerCase().includes(searchLower),
       );
     }
 
@@ -41,23 +61,24 @@ export const Home_Page = () => {
       filtered = filtered.filter((user) => user.role === filterRole);
     }
 
-    // Status filter
+    // Status filter (isVerified)
     if (filterStatus !== "all") {
-      filtered = filtered.filter((user) => user.status === filterStatus);
+      const isVerified = filterStatus === "Active";
+      filtered = filtered.filter((user) => user.isVerified === isVerified);
     }
 
     // Sort
     filtered.sort((a, b) => {
-      let aVal = a[sortBy as keyof typeof a];
-      let bVal = b[sortBy as keyof typeof b];
+      let aVal = a[sortBy as keyof IUserApi];
+      let bVal = b[sortBy as keyof IUserApi];
 
       if (typeof aVal === "string") {
         aVal = aVal.toLowerCase();
-        bVal = (bVal as string).toLowerCase();
+        bVal = (bVal! as string).toLowerCase();
       }
 
-      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+      if (aVal! < bVal!) return sortOrder === "asc" ? -1 : 1;
+      if (aVal! > bVal!) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
 
@@ -71,9 +92,9 @@ export const Home_Page = () => {
   const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   // Pagination controls
-  const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
+  // const goToPage = (page: number) => {
+  //   setCurrentPageDispatched(Math.max(1, Math.min(page, totalPages)));
+  // };
 
   const getPageNumbers = () => {
     const pages = [];
@@ -88,28 +109,196 @@ export const Home_Page = () => {
   };
 
   // Get status badge color
-  const getStatusBadge = (status: string) => {
-    const colors = {
-      Active: "badge-success",
-      Inactive: "badge-error",
-      Pending: "badge-warning",
-    };
-    return colors[status as keyof typeof colors] || "badge-ghost";
+  const getStatusBadge = (user: IUserApi) => {
+    if (user.isVerified) {
+      return "badge-success";
+    }
+    return "badge-warning";
+  };
+
+  const getStatusText = (user: IUserApi) => {
+    if (user.isVerified) {
+      return "Verified";
+    }
+    return "Pending";
+  };
+
+  // // Format date
+  const formatDate = (date: Date | null | undefined) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString();
+  };
+  if (getAllUsersLoading) {
+    return (
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <div className="text-center">
+          <AppIcon_Element
+            icon="lucide:loader"
+            className="text-6xl text-primary animate-spin mx-auto mb-4"
+          />
+          <p className="text-base-content/60">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+  const handleUserByID = (id: string) => {
+    navigate(`/user/${id}`);
   };
   return (
     <div className="min-h-screen bg-base-200 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <HomeManage_layout />
+        <div className="relative mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <AppIcon_Element
+                  icon="fa-solid:robot"
+                  className="text-primary"
+                />
+                User Management
+              </h1>
+              <p className="text-base-content/60 mt-1">
+                {filteredUsers.length} users found
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                // onClick={() => refetch()}
+                // disabled={isFetching}
+                className="btn btn-ghost btn-sm relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <AppIcon_Element
+                    icon="boxicons:refresh-cw"
+                    // className={`${isFetching ? "animate-spin" : ""}`}
+                  />
+                  {/* {isFetching ? "Refreshing..." : "Refresh"} */}
+                </span>
+              </button>
+              <button className="btn btn-primary btn-sm relative overflow-hidden group">
+                <span className="relative z-10 flex items-center gap-2">
+                  <AppIcon_Element icon="mynaui:users-group" /> Add User
+                </span>
+                <div className="absolute inset-0 bg-linear-to-r from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {getAllUsersError && (
+          <div className="alert alert-error mb-6 animate-shake">
+            <AppIcon_Element icon="boxicons:alert-circle" className="text-lg" />
+            <span>
+              {getAllUsersError instanceof Error
+                ? getAllUsersError.message
+                : "An error occurred"}
+            </span>
+            <button
+              // onClick={() => refetch()}
+              className="btn btn-ghost btn-xs"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* Filters Section */}
-        <HomeFilter_layout />
+        <div className="bg-base-100/80 backdrop-blur-xl rounded-2xl p-4 mb-6 border border-base-300/50 shadow-xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <AppIcon_Element
+                icon="lucide:search"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 text-lg"
+              />
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTermDispatched(e.target.value)}
+                className="input input-bordered w-full pl-10 bg-base-200/50 focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+            </div>
+
+            {/* Role Filter */}
+            <div className="relative">
+              <AppIcon_Element
+                icon="gg:briefcase"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 text-lg"
+              />
+              <select
+                value={filterRole}
+                onChange={(e) =>
+                  setFilterRoleDispatched(
+                    e.target.value as "all" | "user" | "admin",
+                  )
+                }
+                className="select select-bordered w-full pl-10 bg-base-200/50 focus:ring-2 focus:ring-primary/50 transition-all"
+              >
+                <option value="all">All Roles</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            {/* <div className="relative">
+              <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 text-lg" />
+              <select
+                value={filterStatus}
+                onChange={(e) =>
+                  dispatch(
+                    setFilterStatus(
+                      e.target.value as "all" | "Active" | "Pending",
+                    ),
+                  )
+                }
+                className="select select-bordered w-full pl-10 bg-base-200/50 focus:ring-2 focus:ring-primary/50 transition-all"
+              >
+                <option value="all">All Status</option>
+                <option value="Active">Verified</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div> */}
+
+            {/* Sort */}
+            <div className="relative">
+              <AppIcon_Element
+                icon="solar:filter-outline"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 text-lg"
+              />
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [field, order] = e.target.value.split("-");
+                  setSortByDispatched(
+                    field as "fullName" | "username" | "role" | "email",
+                  );
+                  setSortOrderDispatched(order as "asc" | "desc");
+                }}
+                className="select select-bordered w-full pl-10 bg-base-200/50 focus:ring-2 focus:ring-primary/50 transition-all"
+              >
+                <option value="fullName-asc">Name A-Z</option>
+                <option value="fullName-desc">Name Z-A</option>
+                <option value="username-asc">Username A-Z</option>
+                <option value="username-desc">Username Z-A</option>
+                <option value="role-asc">Role A-Z</option>
+                <option value="role-desc">Role Z-A</option>
+                <option value="email-asc">Email A-Z</option>
+                <option value="email-desc">Email Z-A</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
         {/* User Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentUsers.map((user, index) => (
+          {currentUsers.map((user: IUserApi, index: number) => (
             <div
-              key={user.id}
+              key={user.email}
               className="group relative animate-fadeInUp"
               style={{ animationDelay: `${index * 50}ms` }}
             >
@@ -126,20 +315,26 @@ export const Home_Page = () => {
                       <div className="relative">
                         <div className="avatar">
                           <div className="w-16 h-16 rounded-full ring-2 ring-primary/20 ring-offset-2">
-                            <img src={user.avatar} alt={user.name} />
+                            <img
+                              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=random&color=fff`}
+                              alt={user.fullName}
+                            />
                           </div>
                         </div>
                         <div
-                          className={`absolute -bottom-1 -right-1 badge ${getStatusBadge(user.status)} badge-sm`}
+                          className={`absolute -bottom-1 -right-1 badge ${getStatusBadge(user)} badge-sm`}
                         >
-                          {user.status}
+                          {getStatusText(user)}
                         </div>
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg">{user.name}</h3>
+                        <h3 className="font-bold text-lg">{user.fullName}</h3>
                         <p className="text-sm text-base-content/60">
-                          {user.role}
+                          @{user.username}
                         </p>
+                        <div className="badge badge-outline badge-sm mt-1">
+                          {user.role === "admin" ? "Admin" : "User"}
+                        </div>
                       </div>
                     </div>
 
@@ -158,18 +353,36 @@ export const Home_Page = () => {
                         className="dropdown-content menu p-2 shadow-xl bg-base-100 rounded-box w-36"
                       >
                         <li>
-                          <button className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleUserByID(user._id)}
+                            className="flex items-center gap-2"
+                          >
                             <AppIcon_Element icon="solar:eye-linear" /> View
                           </button>
                         </li>
                         <li>
-                          <button className="flex items-center gap-2">
+                          <button
+                            className="flex items-center gap-2"
+                            onClick={() => navigate(`/user/update/${user._id}`)}
+                          >
                             <AppIcon_Element icon="iconamoon:edit-light" /> Edit
                           </button>
                         </li>
                         <li>
-                          <button className="flex items-center gap-2 text-error">
-                            <AppIcon_Element icon={"tabler:trash"} /> Delete
+                          <button
+                            onClick={() => mutateDeleteUserByID(user?._id)}
+                            disabled={deleteUserByIDLoading}
+                            className="flex items-center gap-2 text-error"
+                          >
+                            {deleteUserByIDLoading ? (
+                              <AppIcon_Element
+                                icon="lucide:loader"
+                                className="animate-spin"
+                              />
+                            ) : (
+                              <AppIcon_Element icon={"tabler:trash"} />
+                            )}
+                            Delete
                           </button>
                         </li>
                       </ul>
@@ -187,74 +400,54 @@ export const Home_Page = () => {
                     </div>
                     <div className="flex items-center gap-3 text-sm text-base-content/70">
                       <AppIcon_Element
-                        icon="solar:phone-linear"
-                        className="text-secondary"
-                      />
-                      <span>{user.phone}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-base-content/70">
-                      <AppIcon_Element
-                        icon="lucide:map-pin"
-                        className="text-accent"
-                      />
-                      <span>{user.location}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-base-content/70">
-                      <AppIcon_Element
                         icon="solar:calendar-linear"
                         className="text-info"
                       />
+                      <span>Joined {formatDate(new Date(user.createdAt))}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-base-content/70">
+                      <AppIcon_Element
+                        icon="boxicons:refresh-cw"
+                        className="text-secondary"
+                      />
                       <span>
-                        Joined {new Date(user.joinDate).toLocaleDateString()}
+                        Last updated {formatDate(new Date(user.updatedAt))}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-base-content/70">
+                      <AppIcon_Element
+                        icon="boxicons:alert-circle"
+                        className="text-warning"
+                      />
+                      <span>
+                        Reset token expires{" "}
+                        {user.resetPasswordExpire
+                          ? user.resetPasswordExpire.toString()
+                          : "N/A"}
                       </span>
                     </div>
                   </div>
 
-                  {/* Skills */}
-                  <div className="mt-4">
-                    <div className="flex flex-wrap gap-1.5">
-                      {user.skills.map((skill: any, idx: number) => (
-                        <span
-                          key={idx}
-                          className="badge badge-outline badge-sm bg-primary/5 border-primary/20"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Stats */}
+                  {/* Verification Info */}
                   <div className="mt-4 pt-4 border-t border-base-300/50">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="text-center">
-                          <div className="flex items-center gap-1 text-warning">
-                            <AppIcon_Element
-                              icon="material-symbols:star-outline-rounded"
-                              className="fill-current"
-                            />
-                            <span className="font-bold">{user.rating}</span>
-                          </div>
-                          <span className="text-xs text-base-content/40">
-                            Rating
-                          </span>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`badge ${user.isVerified ? "badge-success" : "badge-warning"} badge-sm`}
+                        >
+                          {user.isVerified ? "✓ Verified" : "⏳ Pending"}
                         </div>
-                        <div className="text-center">
-                          <div className="flex items-center gap-1">
-                            <AppIcon_Element
-                              icon="la:award"
-                              className="text-primary"
-                            />
-                            <span className="font-bold">{user.projects}</span>
+                        {user.role === "admin" && (
+                          <div className="badge badge-primary badge-sm">
+                            Admin
                           </div>
-                          <span className="text-xs text-base-content/40">
-                            Projects
-                          </span>
-                        </div>
+                        )}
                       </div>
 
-                      <button className="btn btn-primary btn-xs relative overflow-hidden group">
+                      <button
+                        className="btn btn-primary btn-xs relative overflow-hidden group"
+                        onClick={() => handleUserByID(user._id)}
+                      >
                         <span className="relative z-10">View Profile</span>
                         <div className="absolute inset-0 bg-linear-to-r from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </button>
@@ -267,7 +460,7 @@ export const Home_Page = () => {
         </div>
 
         {/* Empty State */}
-        {filteredUsers.length === 0 && (
+        {filteredUsers.length === 0 && !getAllUsersLoading && (
           <div className="text-center py-12">
             <div className="bg-base-100/80 backdrop-blur-xl rounded-2xl p-8 border border-base-300/50">
               <AppIcon_Element
@@ -279,11 +472,7 @@ export const Home_Page = () => {
                 Try adjusting your search or filters
               </p>
               <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setFilterRole("all");
-                  setFilterStatus("all");
-                }}
+                onClick={() => resetFiltersDispatched()}
                 className="btn btn-primary btn-sm mt-4"
               >
                 Clear filters
@@ -300,10 +489,9 @@ export const Home_Page = () => {
               <span className="text-sm text-base-content/60">Show</span>
               <select
                 value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
+                onChange={(e) =>
+                  setItemsPerPageDispatched(Number(e.target.value))
+                }
                 className="select select-bordered select-sm w-20"
               >
                 <option value="6">6</option>
@@ -324,7 +512,7 @@ export const Home_Page = () => {
             {/* Pagination buttons */}
             <div className="flex items-center gap-1">
               <button
-                onClick={() => goToPage(1)}
+                onClick={() => setCurrentPageDispatched(1)}
                 disabled={currentPage === 1}
                 className="btn btn-ghost btn-sm btn-square"
               >
@@ -332,7 +520,7 @@ export const Home_Page = () => {
               </button>
 
               <button
-                onClick={() => goToPage(currentPage - 1)}
+                onClick={() => setCurrentPageDispatched(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="btn btn-ghost btn-sm btn-square"
               >
@@ -342,32 +530,32 @@ export const Home_Page = () => {
               {getPageNumbers().map((page) => (
                 <button
                   key={page}
-                  onClick={() => goToPage(page)}
-                  className={`btn btn-sm btn-square transition-all duration-200 ${
-                    currentPage === page
-                      ? "btn-primary"
-                      : "btn-ghost hover:bg-primary/10"
-                  }`}
+                  onClick={() => setCurrentPageDispatched(page)}
+                  className={`btn btn-sm btn-square transition-all duration-200
+                    ${
+                      currentPage === page
+                        ? "btn-primary"
+                        : "btn-ghost hover:bg-primary/10"
+                    }
+                  `}
                 >
                   {page}
                 </button>
               ))}
 
               <button
-                onClick={() => goToPage(currentPage + 1)}
+                onClick={() => setCurrentPageDispatched(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 className="btn btn-ghost btn-sm btn-square"
               >
                 <AppIcon_Element icon="lucide:chevrons-right" />
-                {/* <FiChevronRight /> */}
               </button>
 
               <button
-                onClick={() => goToPage(totalPages)}
+                onClick={() => setCurrentPageDispatched(totalPages)}
                 disabled={currentPage === totalPages}
                 className="btn btn-ghost btn-sm btn-square"
               >
-                {/* <FiChevronsRight /> */}
                 <AppIcon_Element icon="lucide:chevrons-right" />
               </button>
             </div>
@@ -375,6 +563,25 @@ export const Home_Page = () => {
         )}
       </div>
     </div>
+
+    // <div className="min-h-screen bg-base-200 p-4 md:p-6">
+    //   <div className="max-w-7xl mx-auto">
+    //     {/* Header Section */}
+    //     <HomeManage_layout />
+
+    //     {/* Filters Section */}
+    //     <HomeFilter_layout />
+
+    //     {/* User Cards Grid */}
+    //     <HomeCard_layout />
+
+    //     {/* Empty State */}
+    //     <HomeEmptyStatus_layout />
+
+    //     {/* Pagination */}
+    //     <HomePagination_layout />
+    //   </div>
+    // </div>
   );
 };
 
